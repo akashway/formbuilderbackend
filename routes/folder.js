@@ -1,18 +1,19 @@
 const express = require('express')
 const router = express.Router()
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
 const authentication = require('../middleware/authentication')
 const Folder = require('../schemas/folder_schema')
 const dotenv = require('dotenv')
 dotenv.config()
 
 
-
-
-router.get("/searchfolder", authentication, async (req, res) => {
+router.get("/", authentication, async (req, res) => {
     const user = req.user
     const userId = user.id
+
+    if(!userId){
+        return res.status(400).json({"message":"User not logged In"})
+    }
+
     const folderListOfCurrentUser = await Folder.find({ user: userId })
     res.status(200).json(folderListOfCurrentUser)
 })
