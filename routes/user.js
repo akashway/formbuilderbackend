@@ -1,8 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
-const jwt=require('jsonwebtoken')
-const dotenv=require('dotenv')
+const jwt = require('jsonwebtoken')
+const dotenv = require('dotenv')
 dotenv.config()
 
 const User = require('../schemas/user_schema')
@@ -36,30 +36,32 @@ router.post("/signup", async (req, res) => {
 })
 
 
-router.post("/login",async (req,res)=>{
-    const {email,password}=req.body
+router.post("/login", async (req, res) => {
+    const { email, password } = req.body
 
-        const user=await User.findOne({email})
+    const user = await User.findOne({ email })
 
-        if(!user){
-            res.status(400).json({"message":"Username or Password incorrect"})
+    if (!user) {
+        res.status(400).json({ "message": "Username or Password incorrect" })
+    }
+
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordCorrect) {
+        res.status(400).json({ "message": "Username or Password incorrect" })
+    }
+
+    else {
+        const payload = {
+            id: user._id
         }
 
-
-        const isPasswordCorrect= await bcrypt.compare(password, user.password)
-
-        if(!isPasswordCorrect){
-            res.status(400).json({"message":"Username or Password incorrect"})
-        }
-
-        const payload={
-            id:user._id
-        }
-
-        const token= jwt.sign(payload,process.env.JWT_SECRET)
-        res.status(200).json({token})
+        const token = jwt.sign(payload, process.env.JWT_SECRET)
+        res.status(200).json({ token,"username":user.username })
+    }
 
 })
 
 
-module.exports=router
+module.exports = router

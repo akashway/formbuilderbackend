@@ -1,13 +1,23 @@
 const express=require('express')
 const mongoose=require('mongoose')
 const bodyParser=require('body-parser')
+const cors=require('cors')
 const dotenv=require('dotenv')
 dotenv.config()
 
 const app=express()
 const PORT= process.env.PORT || 3000
 const userRouter=require('./routes/user')
+const folderRouter=require('./routes/folder')
+const fileRouter=require('./routes/file')
 
+app.use(cors())
+app.use(express.urlencoded({extended:true}))
+app.use(bodyParser.json())
+
+app.use("/api/user",userRouter)
+app.use("/api/folder",folderRouter)
+app.use("/api/file",fileRouter)
 
 
 app.get("/",(req,res)=>{
@@ -16,9 +26,6 @@ app.get("/",(req,res)=>{
     })
 })
 
-app.use(express.urlencoded({extended:true}))
-app.use(bodyParser.json())
-app.use("/api/user",userRouter)
 
 
 app.listen(PORT,(err)=>{
