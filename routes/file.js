@@ -9,8 +9,22 @@ const File = require('../schemas/file_schema')
 const Folder = require('../schemas/folder_schema')
 
 
+
 router.get("/", authentication, async (req, res) => {
-    const { foldername } = req.query
+
+    const userId = req.user.id
+
+    if (!userId) {
+        return res.status(400).json({ "message": "User not logged In" })
+    }
+
+    const fileListOfCurrentUser = await File.find({ user: userId,folder:null })
+    res.status(200).json(fileListOfCurrentUser)
+})
+
+
+router.get("/:foldername", authentication, async (req, res) => {
+    const { foldername } = req.params
     const user = req.user
     const userId = user.id
 
@@ -35,29 +49,39 @@ router.post("/addfile", authentication, async (req, res) => {
     const { fileName, folderName } = req.body
     const userObjectId = new mongoose.Types.ObjectId(req.user.id)
 
-    const folder = await Folder.findOne({ folderName, user: userObjectId })
-    const isFileNameExists = await File.findOne({ fileName })
+    let folder=null
 
-    if (!folder) {
-        return res.status(403).json({ message: 'User does not have permission to add files to this folder' });
+    if(folderName){
+        folder = await Folder.findOne({ folderName, user: userObjectId })
+        if (!folder) {
+            return res.status(403).json({ message: 'User does not have permission to add files to this folder' });
+        }
+
     }
 
-    if (fileName === "" || folderName === "" || fileName == undefined || folderName == undefined) {
-        return res.status(400).json({ "message": "Folder or file name can't be empty" })
+    const isFileNameExists = await File.findOne({ fileName,folder:folder?folder._id:null})
+
+    if (fileName === "" || fileName == undefined) {
+        return res.status(400).json({ "message": "File name can't be empty" })
     }
 
     if (isFileNameExists) {
-        return res.status(400).json({ "message": "Folder ax`lready exist" })
+        return res.status(400).json({ "message": "File name already exist" })
     }
-
+    
     try {
         const file = await File.create({
             fileName,
-            folder: folder.id
+            folder: folder?folder._id:null,
+            user:req.user.id
         })
         res.status(200).json(file)
     } catch (err) {
-        res.status(400).json({ "message": "Error while adding file" })
+        if (err.code === 11000) { 
+            console.log(err)
+            return res.status(400).json({ message: 'File with the same name already exists in this folder' })
+        }
+        res.status(500).json({ "message": "Error while adding file" })
     }
 })
 

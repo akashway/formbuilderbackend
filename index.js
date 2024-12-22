@@ -10,6 +10,7 @@ const PORT= process.env.PORT || 3000
 const userRouter=require('./routes/user')
 const folderRouter=require('./routes/folder')
 const fileRouter=require('./routes/file')
+const File=require('./schemas/file_schema')
 
 app.use(cors())
 app.use(express.urlencoded({extended:true}))
@@ -39,7 +40,10 @@ app.listen(PORT,(err)=>{
             useNewUrlParser:true,
             useUnifiedTopology:true
         })
-        .then(()=>console.log("MongoDb connected"))
+        .then(()=>{
+            console.log("MongoDb connected")
+            File.init();
+        })
         .catch((err)=>console.log(err))
     }
 })

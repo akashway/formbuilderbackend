@@ -3,16 +3,22 @@ const mongoose=require('mongoose')
 const fileSchema=new mongoose.Schema({
     fileName:{
         type:String,
-        unique:true,
         require:true
     },
     folder:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'Folder'
+        ref:'Folder',
+        default:null
+    },
+    user:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'User',
+        require:true
     }
 })
 
-const File= new mongoose.model('File',fileSchema)
+fileSchema.index({ fileName: 1, folder: 1 }, { unique: true})
 
+const File= new mongoose.model('File',fileSchema)
 
 module.exports= File

@@ -1,21 +1,49 @@
 const express = require('express')
 const router = express.Router()
 const authentication = require('../middleware/authentication')
-const Folder = require('../schemas/folder_schema')
 const dotenv = require('dotenv')
 dotenv.config()
+
+const Folder = require('../schemas/folder_schema')
+const File = require('../schemas/file_schema')
 
 
 router.get("/", authentication, async (req, res) => {
     const user = req.user
     const userId = user.id
 
-    if(!userId){
-        return res.status(400).json({"message":"User not logged In"})
+    if (!userId) {
+        return res.status(400).json({ "message": "User not logged In" })
     }
 
     const folderListOfCurrentUser = await Folder.find({ user: userId })
     res.status(200).json(folderListOfCurrentUser)
+})
+
+
+router.post("/", authentication, async (req, res) => {
+    const { fileName } = req.body
+
+    if (fileName === "" || fileName == undefined) {
+        return res.status(400).json({ "message": "Folder can't be empty or undefined" })
+    }
+
+    const isFileExist=await File.findOne({fileName})
+
+    if (isFileExist) {
+        return res.status(400).json({ "message": "File already exist" })
+    }
+
+    try {
+        const file = await File.create({
+            fileName,
+            user: req.user.id
+        })
+        res.status(200).json(file)
+    } catch (err) {
+        res.status(500).json({ "message": "Error while adding file" })
+    }
+
 })
 
 
