@@ -7,6 +7,7 @@ dotenv.config()
 
 const File = require('../schemas/file_schema')
 const Folder = require('../schemas/folder_schema')
+const Workspace=require('../schemas/workspace_schema')
 
 
 
@@ -75,6 +76,14 @@ router.post("/addfile", authentication, async (req, res) => {
             folder: folder?folder._id:null,
             user:req.user.id
         })
+         let workspace=await Workspace.findOne({owner:req.user.id})
+                if(!workspace){
+                    workspace=new Workspace({owner:req.user.id,files:[],folder:[]})
+                }
+                if(!folder){
+                    workspace.files.push(file._id)
+                    await workspace.save()
+                }
         res.status(200).json(file)
     } catch (err) {
         if (err.code === 11000) { 

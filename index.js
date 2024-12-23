@@ -10,6 +10,7 @@ const PORT= process.env.PORT || 3000
 const userRouter=require('./routes/user')
 const folderRouter=require('./routes/folder')
 const fileRouter=require('./routes/file')
+const sharedAccessRouter=require('./routes/shareAccess')
 const File=require('./schemas/file_schema')
 
 app.use(cors())
@@ -19,6 +20,7 @@ app.use(bodyParser.json())
 app.use("/api/user",userRouter)
 app.use("/api/folder",folderRouter)
 app.use("/api/file",fileRouter)
+app.use("/api/shareaccess",sharedAccessRouter)
 
 
 app.get("/",(req,res)=>{

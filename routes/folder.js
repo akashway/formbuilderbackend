@@ -6,6 +6,7 @@ dotenv.config()
 
 const Folder = require('../schemas/folder_schema')
 const File = require('../schemas/file_schema')
+const Workspace=require('../schemas/workspace_schema')
 
 
 router.get("/", authentication, async (req, res) => {
@@ -50,7 +51,6 @@ router.post("/", authentication, async (req, res) => {
 router.post("/addfolder", authentication, async (req, res) => {
     const { folderName } = req.body
     const isFolderExist = await Folder.findOne({ folderName })
-    console.log(folderName, "folderName")
 
     if (folderName === "" || folderName == undefined) {
         return res.status(400).json({ "message": "Folder can't be empty" })
@@ -66,6 +66,14 @@ router.post("/addfolder", authentication, async (req, res) => {
             folderName,
             user: user.id
         })
+
+        let workspace=await Workspace.findOne({owner:user.id})
+        if(!workspace){
+            workspace=new Workspace({owner:req.user.id,files:[],folder:[]})
+        }
+        workspace.folder.push(folder._id)
+        await workspace.save()
+
         res.status(200).json(folder)
     } catch (err) {
         res.status(500).json({ "message": "Error while adding Folder" })
